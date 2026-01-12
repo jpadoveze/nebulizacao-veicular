@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Nebulização Veicular - ACE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    body { margin: 0; font-family: Arial; }
+    #map { height: 100vh; }
+    .info {
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      z-index: 9999;
+      font-size: 14px;
+    }
+    .rotulo-quarteirao {
+      font-size: 13px;
+      font-weight: bold;
+      color: black;
+      background: transparent;
+      text-shadow:
+        -1px -1px 0 #fff,
+         1px -1px 0 #fff,
+        -1px  1px 0 #fff,
+         1px  1px 0 #fff;
+      pointer-events: none;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="info">
+  <button id="toggleSelecao">Selecionar quarteirões</button>
+  <hr>
+
+  <!--Área (ha): <span id="areaHa">0</span><br>-->
+  Percurso (km): <span id="kmTotal">0</span><br>
+  <!--m/ha: <span id="mHa">0</span><br><hr>-->
+
+  Velocidade:
+  <input id="velocidade" type="number" value="10"><br>
+
+  Vazão:
+  <input id="vazao" type="number" value="70"><br><hr>
+
+  Tempo (min): <span id="tempoMin">0</span><br>
+  Consumo (L): <span id="consumoL">0</span>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/calculos.js"></script>
+
+</body>
+</html>
