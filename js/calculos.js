@@ -1,9 +1,7 @@
 const map = L.map('map').setView([-21.9346, -50.5136], 14);
+
 const rotulos = [];
 const ZOOM_ROTULO = 16;
-const AFASTAMENTO_RUA = 1.6; // metros
-
-
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
@@ -12,7 +10,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let modoSelecao = false;
 const quarteiroesSelecionados = new Set();
 let poligonoArea = null;
+let areaFinalFeature = null;
 
+// =====================
+// ESTILOS
+// =====================
 const estiloNormal = {
   color: '#555',
   weight: 1,
@@ -27,36 +29,48 @@ const estiloSelecionado = {
   fillColor: '#ff7800'
 };
 
+// =====================
+// BOTÃO SELEÇÃO
+// =====================
 toggleSelecao.onclick = () => {
 
-  // Se já existe área criada, pedir confirmação
+  // Apagar área existente
   if (!modoSelecao && poligonoArea) {
     const ok = confirm('Deseja apagar a área selecionada?');
     if (!ok) return;
 
-    // limpar tudo
-    quarteiroesSelecionados.forEach(l =>
-      l.setStyle(estiloNormal)
-    );
+    quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
     quarteiroesSelecionados.clear();
+
     map.removeLayer(poligonoArea);
     poligonoArea = null;
+    areaFinalFeature = null;
 
     atualizarCalculos();
   }
 
   modoSelecao = !modoSelecao;
-  toggleSelecao.textContent = modoSelecao
-    ? 'Concluir'
-    : 'Selecionar Área';
+  toggleSelecao.textContent = modoSelecao ? 'Concluir' : 'Selecionar Área';
 
+  // Concluir seleção
   if (!modoSelecao) {
-    criarPoligonoArea();
+    const areaFinal = criarPoligonoArea();
+
+    if (areaFinal) {
+      const bounds = L.geoJSON(areaFinal).getBounds();
+      map.fitBounds(bounds, {
+        padding: [20, 20],
+        maxZoom: 18
+      });
+    }
+
     atualizarCalculos();
   }
 };
 
-
+// =====================
+// CARREGAR QUARTEIRÕES
+// =====================
 fetch('data/quarteiroes.geojson')
   .then(r => r.json())
   .then(data => {
@@ -65,8 +79,8 @@ fetch('data/quarteiroes.geojson')
       onEachFeature: (feature, layer) => {
 
         layer.setStyle(estiloNormal);
-        
-        // 🔹 rótulo central
+
+        // Rótulo
         const centro = layer.getBounds().getCenter();
         const rotulo = L.marker(centro, {
           icon: L.divIcon({
@@ -76,17 +90,17 @@ fetch('data/quarteiroes.geojson')
           }),
           interactive: false
         });
-        
+
         rotulos.push(rotulo);
 
-        // adiciona apenas se o zoom permitir
         if (map.getZoom() >= ZOOM_ROTULO) {
           rotulo.addTo(map);
         }
-        
+
+        // Clique
         layer.on('click', () => {
           if (!modoSelecao) return;
-      
+
           if (quarteiroesSelecionados.has(layer)) {
             quarteiroesSelecionados.delete(layer);
             layer.setStyle(estiloNormal);
@@ -101,106 +115,9 @@ fetch('data/quarteiroes.geojson')
     }).addTo(map);
   });
 
-map.fire('zoomend');  
-
-function atualizarCalculos() {
-  let area = 0;
-  let percurso = 0;
-
-  quarteiroesSelecionados.forEach(layer => {
-    const latlngs = layer.getLatLngs().flat(2);
-  
-    // área
-    area += L.polygon(latlngs).getArea?.() || 0;
-  
-    // perímetro
-    for (let i = 0; i < latlngs.length; i++) {
-      const p1 = latlngs[i];
-      const p2 = latlngs[(i + 1) % latlngs.length];
-      //const distancia = p1.distanceTo(p2);
-      // adiciona afastamento dos dois lados da rua
-      //percurso += distancia + AFASTAMENTO_RUA;
-      percurso += p1.distanceTo(p2);
-
-    }
-  });
-
-  const FATOR_RUA = 1.15;
-  percurso *= FATOR_RUA;
-
-  const ha = area / 10000;
-  const mHa = ha ? percurso / ha : 0;
-
-  const vel = +velocidade.value;
-  const vaz = +vazao.value;
-
-  const tempo = vel ? percurso / ((vel * 1000) / 60) : 0;
-  const consumo = (tempo * vaz) / 1000;
-
-  //areaHa.textContent = ha.toFixed(2);
-  kmTotal.textContent = (percurso / 1000).toFixed(2);
-  //mHa.textContent = mHa.toFixed(0);
-  tempoMin.textContent = tempo.toFixed(1);
-  consumoL.textContent = consumo.toFixed(2);
-}
-
-//Criar o polígono final (borda grossa, sem preenchimento)
-function criarPoligonoArea() {
-  if (quarteiroesSelecionados.size < 2) return;
-
-  let pontos = [];
-
-  quarteiroesSelecionados.forEach(layer => {
-    layer.getLatLngs().flat(2).forEach(p => pontos.push(p));
-  });
-
-  const hull = convexHull(pontos);
-
-  if (poligonoArea) {
-    map.removeLayer(poligonoArea);
-  }
-
-  poligonoArea = L.polygon(hull, {
-    color: '#ff0000',
-    weight: 4,
-    fill: false
-  }).addTo(map);
-}
-
-function cross(o, a, b) {
-  return (a.lng - o.lng) * (b.lat - o.lat) -
-         (a.lat - o.lat) * (b.lng - o.lng);
-}
-
-function convexHull(points) {
-  points = points
-    .map(p => ({ lat: p.lat, lng: p.lng }))
-    .sort((a, b) => a.lng === b.lng ? a.lat - b.lat : a.lng - b.lng);
-
-  const lower = [];
-  for (const p of points) {
-    while (lower.length >= 2 &&
-           cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
-      lower.pop();
-    }
-    lower.push(p);
-  }
-
-  const upper = [];
-  for (let i = points.length - 1; i >= 0; i--) {
-    const p = points[i];
-    while (upper.length >= 2 &&
-           cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
-      upper.pop();
-    }
-    upper.push(p);
-  }
-
-  upper.pop();
-  lower.pop();
-  return lower.concat(upper);
-}
-
+// =====================
+// ZOOM DOS RÓTULOS
+// =====================
 map.on('zoomend', () => {
   const zoom = map.getZoom();
 
@@ -213,5 +130,125 @@ map.on('zoomend', () => {
   });
 });
 
+// =====================
+// CÁLCULOS
+// =====================
+function atualizarCalculos() {
+  let percurso = 0;
+
+  quarteiroesSelecionados.forEach(layer => {
+    const latlngs = layer.getLatLngs().flat(2);
+
+    for (let i = 0; i < latlngs.length; i++) {
+      const p1 = latlngs[i];
+      const p2 = latlngs[(i + 1) % latlngs.length];
+      percurso += p1.distanceTo(p2);
+    }
+  });
+
+  // Ajuste do percuro por ruas, adiciona uma porcentagem ajustável ao perímetro do quarteirão
+  const FATOR_RUA = 1.15;
+  percurso *= FATOR_RUA;
+
+  // 🔹 Área (ha)
+  let hectares = 0;
+  if (areaFinalFeature) {
+    hectares = turf.area(areaFinalFeature) / 10000;
+  }
+
+  //const mHaValor = hectares > 0 ? percurso / hectares : 0;
+
+  // 🔹 Inputs (corrigido)
+  const vel = parseFloat(velocidade.value) || 0;
+  const vaz = parseFloat(vazao.value) || 0;
+
+  let tempo = 0;
+  let consumo = 0;
+
+  if (vel > 0 && vaz > 0) {
+    tempo = percurso / ((vel * 1000) / 60);
+    consumo = (tempo * vaz) / 1000;
+  }
+
+  // 🔹 UI
+  areaHa.textContent = hectares.toFixed(2);
+  kmTotal.textContent = (percurso / 1000).toFixed(2);
+  //mHa.textContent = mHaValor.toFixed(0);
+  tempoMin.textContent = tempo.toFixed(1);
+  consumoL.textContent = consumo.toFixed(2);
+}
+
+
 velocidade.oninput = atualizarCalculos;
 vazao.oninput = atualizarCalculos;
+
+// =====================
+// REMOVER BURACOS
+// =====================
+function removerBuracos(feature) {
+  if (!feature || !feature.geometry) return feature;
+
+  if (feature.geometry.type === 'Polygon') {
+    return {
+      ...feature,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [feature.geometry.coordinates[0]]
+      }
+    };
+  }
+
+  if (feature.geometry.type === 'MultiPolygon') {
+    return {
+      ...feature,
+      geometry: {
+        type: 'MultiPolygon',
+        coordinates: feature.geometry.coordinates.map(p => [p[0]])
+      }
+    };
+  }
+
+  return feature;
+}
+
+// =====================
+// CRIAR POLÍGONO FINAL
+// =====================
+function criarPoligonoArea() {
+  if (quarteiroesSelecionados.size === 0) return null;
+
+  let unido = null;
+
+  quarteiroesSelecionados.forEach(layer => {
+    const feature = layer.toGeoJSON();
+    unido = unido ? turf.union(unido, feature) : feature;
+  });
+
+  if (!unido) return null;
+
+  // 1️⃣ Tolerância topológica (ignorar avenidas)
+  const TOLERANCIA_METROS = 20;
+
+  const expandido = turf.buffer(unido, TOLERANCIA_METROS, { units: 'meters' });
+  const semBuracos = removerBuracos(expandido);
+  const recontraido = turf.buffer(semBuracos, -TOLERANCIA_METROS, { units: 'meters' });
+
+  // 2️⃣ Afastamento visual (não cobrir nomes de ruas)
+  const AFASTAMENTO_VISUAL_METROS = 10;
+  const final = turf.buffer(recontraido, AFASTAMENTO_VISUAL_METROS, { units: 'meters' });
+
+  if (poligonoArea) {
+    map.removeLayer(poligonoArea);
+  }
+
+  poligonoArea = L.geoJSON(final, {
+    style: {
+      color: '#ff0000',
+      weight: 4,
+      fill: false
+    }
+  }).addTo(map);
+
+  areaFinalFeature = final;
+  return final;
+}
