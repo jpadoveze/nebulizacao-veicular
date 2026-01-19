@@ -62,18 +62,7 @@ function criarPoligonoArea() {
   const hectares = turf.area(final) / 10000;
   areaHa.textContent = hectares.toFixed(2);
 
-
-  function areaHec(feature) {
-    if (!feature || !feature.geometry) return '—';
-    return (turf.area(feature) / 10000).toFixed(2);
-  }
-
-  spanExpandida.textContent = areaHec(expandido);
-  spanSemBuracos.textContent = areaHec(semBuracos);
-  spanRecontraida.textContent = areaHec(recontraido);
-  spanFinal.textContent = areaHec(final);
-
-  //selecionarQuarteiroesInternos(final);
+  selecionarQuarteiroesInternos(final);
 
   return final;
 }
