@@ -1,63 +1,102 @@
-body { margin: 0; font-family: Arial; }
+/* Base */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-#map { height: 100vh; }
+#map {
+  height: 100vh;
+}
 
+/* Painel lateral */
 .info {
   position: fixed;
   top: 60px;
   right: 12px;
-  width: 260px;
+  width: 270px;
   background: #ffffff;
-  border-radius: 10px;
   padding: 12px;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   z-index: 9999;
 }
 
 /* Título */
 .info h3 {
-  margin: 0 0 8px 0;
-  font-size: 15px;
+  margin: 0 0 10px 0;
+  padding-bottom: 6px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
-  color: #2c3e50;
+  color: #0d47a1;
+  border-bottom: 2px solid #e3f2fd;
 }
 
-/* Botão */
-.info button {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
+/* Área de ações */
+.acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* Botões */
+.acoes button {
+  padding: 7px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid transparent;
   cursor: pointer;
+  text-align: center;
 }
 
-.info button:hover {
-  background: #125aa3;
+/* Botão principal */
+.acoes .primario {
+  background: #0d47a1;
+  color: #fff;
+  font-weight: bold;
 }
 
-/* Blocos */
+/* Botões secundários */
+.acoes .secundario {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #bbdefb;
+}
+
+/* Botão destrutivo */
+.acoes .perigo {
+  background: #ffffff;
+  color: #c62828;
+  border: 1px solid #c62828;
+}
+
+/* Hover */
+.acoes button:hover {
+  filter: brightness(0.95);
+}
+
+/* Blocos de informação */
 .bloco {
   margin-bottom: 10px;
   padding: 8px;
-  border-radius: 6px;
-  background: #f5f7fa;
+  background: #f4f6f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
 }
 
-/* Linhas de dados */
+/* Linhas */
 .linha {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12.5px;
   margin-bottom: 4px;
+  color: #1f2933;
 }
 
-.linha span.valor {
+/* Valores */
+.linha .valor {
   font-weight: bold;
   color: #000;
 }
@@ -65,17 +104,19 @@ body { margin: 0; font-family: Arial; }
 /* Inputs */
 .info input {
   width: 100%;
-  padding: 6px;
+  padding: 5px;
   margin-top: 4px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  margin-bottom: 6px;
+  font-size: 13px;
+  border-radius: 3px;
+  border: 1px solid #cfd8dc;
 }
 
+/* Rótulos dos quarteirões no mapa */
 .rotulo-quarteirao {
   font-size: 13px;
   font-weight: bold;
-  color: black;
+  color: #000;
   background: transparent;
   text-shadow:
     -1px -1px 0 #fff,
@@ -83,4 +124,30 @@ body { margin: 0; font-family: Arial; }
     -1px  1px 0 #fff,
      1px  1px 0 #fff;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .info {
+    display: none;
+    right: 50%;
+    transform: translateX(50%);
+    top: 60px;
+  }
+
+  .info.show {
+    display: block;
+  }
+
+  .btn-info {
+    position: fixed;
+    bottom: 20px;
+    right: 15px;
+    z-index: 10000;
+    padding: 12px 14px;
+    border-radius: 50%;
+    border: none;
+    background: #1976d2;
+    color: #fff;
+    font-size: 18px;
+  }
 }

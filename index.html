@@ -13,10 +13,20 @@
 
 <div id="map"></div>
 
+<button class="btn-info" id="btnInfo">ℹ️</button>
+
 <div class="info">
+
   <h3>Nebulização Veicular</h3>
 
-  <button id="toggleSelecao">Selecionar quarteirões</button>
+  <div class="acoes">
+    <button id="btnNovo" class="primario">🆕 Nova área</button>
+
+    <button id="btnLoad" class="secundario">📂 Carregar área</button>
+    <button id="btnExportar" class="secundario">💾 Exportar área</button>
+
+    <button id="btnLimpar" class="perigo">🗑️ Limpar área</button>
+  </div>
 
   <div class="bloco">
     <div class="linha">
@@ -52,10 +62,15 @@
   </div>
 </div>
 
-
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/estado.js"></script>
+<script src="js/map.js"></script>
+<script src="js/selecao.js"></script>
+<script src="js/area.js"></script>
 <script src="js/calculos.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/exportacao.js"></script>
 
 </body>
 </html>
