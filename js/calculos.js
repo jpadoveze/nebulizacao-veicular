@@ -34,6 +34,7 @@ function atualizarCalculos() {
   const consumo = (tempo * vaz) / 1000;
 
   kmTotal.textContent = (percurso / 1000).toFixed(2);
-  tempoMin.textContent = tempo.toFixed(1);
+  //tempoMin.textContent = tempo.toFixed(1);
+  tempoMin.textContent = `${Math.ceil(tempo)} min`;
   consumoL.textContent = consumo.toFixed(2);
 }
