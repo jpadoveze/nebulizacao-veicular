@@ -1,6 +1,11 @@
-import { estado } from './estado.js';
-import { map } from './map.js';
-import { atualizarCalculos } from './calculos.js';
+function normalizarFeature(feature) {
+  if (!feature || !feature.geometry) return null;
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: feature.geometry
+  };
+}
 
 function removerBuracos(feature) {
   if (!feature || !feature.geometry) return feature;
@@ -25,39 +30,40 @@ function removerBuracos(feature) {
   return feature;
 }
 
-export function criarPoligonoArea() {
-  if (estado.quarteiroesSelecionados.size === 0) return null;
+function criarPoligonoArea() {
+  if (quarteiroesSelecionados.size === 0) return null;
 
   let unido = null;
 
-  estado.quarteiroesSelecionados.forEach(layer => {
+  quarteiroesSelecionados.forEach(layer => {
     const f = layer.toGeoJSON();
     unido = unido ? turf.union(unido, f) : f;
   });
 
   if (!unido) return null;
 
-  const TOLERANCIA_METROS = 20;
-  const AFASTAMENTO_VISUAL_METROS = 10;
+  const TOLERANCIA_METROS = 20; //ajuste para que o permitro do polígono final acompanhe o contorno dos quarteirões periféricos
+  const AFASTAMENTO_VISUAL_METROS = 10; // permite regular a expansão do polígono da área final
 
-  const expandido = turf.buffer(unido, TOLERANCIA_METROS, { units: 'meters' });
+  const expandido = turf.buffer(unido, TOLERANCIA_METROS, { units: 'meters' }); // aplicação do TOLERANCIA_METROS em metros
   const semBuracos = removerBuracos(expandido);
   const recontraido = turf.buffer(semBuracos, -TOLERANCIA_METROS, { units: 'meters' });
-  const final = turf.buffer(recontraido, AFASTAMENTO_VISUAL_METROS, { units: 'meters' });
+  const final = turf.buffer(recontraido, AFASTAMENTO_VISUAL_METROS, { units: 'meters' }); // aplicação do AFASTAMENTO_VISUAL_METROS em metros
 
-  if (estado.poligonoArea) map.removeLayer(estado.poligonoArea);
+  if (poligonoArea) map.removeLayer(poligonoArea);
 
-  estado.poligonoArea = L.geoJSON(final, {
+  poligonoArea = L.geoJSON(final, {
     style: { color: '#ff0000', weight: 4, fill: false }
   }).addTo(map);
 
-  estado.areaFinalFeature = final;
+  areaFinalFeature = final;
 
-  const areaHa = document.getElementById('areaHa');
-  if (areaHa) {
-    const hectares = turf.area(final) / 10000;
-    areaHa.textContent = hectares.toFixed(2);
-  }
+  // 🔹 ATUALIZA A ÁREA AQUI (garantido)
+  const hectares = turf.area(final) / 10000;
+  areaHa.textContent = hectares.toFixed(2);
+
+  selecionarQuarteiroesInternos(final);
 
   return final;
 }
+
