@@ -1,74 +1,56 @@
-const estiloNormal = {
+import { state } from './state.js';
+import { map } from './map.js';
+import { atualizarCalculos } from './calculos.js';
+
+export const estiloNormal = {
   color: '#555',
   weight: 1,
   fillOpacity: 0.2,
   fillColor: '#3388ff'
 };
 
-const estiloSelecionado = {
+export const estiloSelecionado = {
   color: '#ff5500',
   weight: 2,
   fillOpacity: 0.6,
   fillColor: '#ff7800'
 };
 
-fetch('data/quarteiroes.geojson')
-  .then(r => r.json())
-  .then(data => {
+export function inicializarQuarteiroes() {
+  fetch('data/quarteiroes.geojson')
+    .then(r => r.json())
+    .then(data => {
+      state.camadaQuarteiroes = L.geoJSON(data, {
+        style: estiloNormal,
+        onEachFeature: (feature, layer) => {
+          const centro = layer.getBounds().getCenter();
+          const rotulo = L.marker(centro, {
+            icon: L.divIcon({
+              className: 'rotulo-quarteirao',
+              html: feature.properties.id,
+              iconSize: null
+            }),
+            interactive: false
+          });
 
-    camadaQuarteiroes = L.geoJSON(data, {
-      style: estiloNormal,
-      onEachFeature: (feature, layer) => {
+          state.rotulos.push(rotulo);
+          if (map.getZoom() >= state.ZOOM_ROTULO) rotulo.addTo(map);
 
-        // rótulo
-        const centro = layer.getBounds().getCenter();
-        const rotulo = L.marker(centro, {
-          icon: L.divIcon({
-            className: 'rotulo-quarteirao',
-            html: feature.properties.id,
-            iconSize: null
-          }),
-          interactive: false
-        });
+          layer.on('click', () => {
+            if (!state.modoSelecao) return;
 
-        rotulos.push(rotulo);
-        if (map.getZoom() >= ZOOM_ROTULO) rotulo.addTo(map);
+            if (state.quarteiroesSelecionados.has(layer)) {
+              state.quarteiroesSelecionados.delete(layer);
+              layer.setStyle(estiloNormal);
+            } else {
+              state.quarteiroesSelecionados.add(layer);
+              layer.setStyle(estiloSelecionado);
+            }
 
-        // clique
-        layer.on('click', () => {
-          if (!modoSelecao) return;
-
-          if (quarteiroesSelecionados.has(layer)) {
-            quarteiroesSelecionados.delete(layer);
-            layer.setStyle(estiloNormal);
-          } else {
-            quarteiroesSelecionados.add(layer);
-            layer.setStyle(estiloSelecionado);
-          }
-
-          atualizarCalculos();
-        });
-      }
-    }).addTo(map);
-  });
-
-// =====================
-// SELEÇÃO AUTOMÁTICA
-// =====================
-function selecionarQuarteiroesInternos(poligonoFinal) {
-  if (!camadaQuarteiroes) return;
-
-  camadaQuarteiroes.eachLayer(layer => {
-    const centroide = layer.getBounds().getCenter();
-
-    if (poligonoFinal.getBounds().contains(centroide)) {
-      if (!quarteiroesSelecionados.has(layer)) {
-        quarteiroesSelecionados.add(layer);
-        layer.setStyle(estiloSelecionado);
-      }
-    }
-  });
-
-  atualizarCalculos();
+            atualizarCalculos();
+          });
+        }
+      }).addTo(map);
+    })
+    .catch(err => console.error('Erro ao carregar os quarteirões:', err));
 }
-

@@ -1,38 +1,49 @@
-const btnNovo = document.getElementById('btnNovo');
-const btnLimpar = document.getElementById('btnLimpar');
-const btnInfo = document.getElementById('btnInfo');
-const infoPanel = document.querySelector('.info');
+import { state } from './state.js';
+import { map } from './map.js';
+import { estiloNormal } from './selecao.js';
+import { criarPoligonoArea } from './area.js';
+import { atualizarCalculos } from './calculos.js';
 
-btnNovo.onclick = () => {
+export function inicializarUI() {
+  const btnNovo = document.getElementById('btnNovo');
+  const btnLimpar = document.getElementById('btnLimpar');
+  const btnInfo = document.getElementById('btnInfo');
+  const infoPanel = document.querySelector('.info');
 
-  if (!modoSelecao) {
-    modoSelecao = true;
-    btnNovo.textContent = 'Concluir demarcação';
-    return;
+  if (btnNovo) {
+    btnNovo.onclick = () => {
+      if (!state.modoSelecao) {
+        state.modoSelecao = true;
+        btnNovo.textContent = 'Concluir demarcação';
+        return;
+      }
+
+      state.modoSelecao = false;
+      btnNovo.textContent = 'Nova demarcação';
+
+      setTimeout(() => {
+        criarPoligonoArea();
+        atualizarCalculos();
+      }, 0);
+    };
   }
 
-  modoSelecao = false;
-  btnNovo.textContent = 'Nova demarcação';
+  if (btnLimpar) {
+    btnLimpar.onclick = () => {
+      state.quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
+      state.quarteiroesSelecionados.clear();
 
-  setTimeout(() => {
-    criarPoligonoArea();
-    atualizarCalculos();
-  }, 0);
-};
+      if (state.poligonoArea) {
+        map.removeLayer(state.poligonoArea);
+        state.poligonoArea = null;
+        state.areaFinalFeature = null;
+      }
 
-btnLimpar.onclick = () => {
-  quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
-  quarteiroesSelecionados.clear();
-
-  if (poligonoArea) {
-    map.removeLayer(poligonoArea);
-    poligonoArea = null;
-    areaFinalFeature = null;
+      atualizarCalculos();
+    };
   }
 
-  atualizarCalculos();
-};
-
-if (btnInfo && infoPanel) {
-  btnInfo.onclick = () => infoPanel.classList.toggle('show');
+  if (btnInfo && infoPanel) {
+    btnInfo.onclick = () => infoPanel.classList.toggle('show');
+  }
 }
