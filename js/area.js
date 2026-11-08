@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { estado } from './estado.js';
 import { map } from './map.js';
 import { atualizarCalculos } from './calculos.js';
 
@@ -26,11 +26,11 @@ function removerBuracos(feature) {
 }
 
 export function criarPoligonoArea() {
-  if (state.quarteiroesSelecionados.size === 0) return null;
+  if (estado.quarteiroesSelecionados.size === 0) return null;
 
   let unido = null;
 
-  state.quarteiroesSelecionados.forEach(layer => {
+  estado.quarteiroesSelecionados.forEach(layer => {
     const f = layer.toGeoJSON();
     unido = unido ? turf.union(unido, f) : f;
   });
@@ -45,13 +45,13 @@ export function criarPoligonoArea() {
   const recontraido = turf.buffer(semBuracos, -TOLERANCIA_METROS, { units: 'meters' });
   const final = turf.buffer(recontraido, AFASTAMENTO_VISUAL_METROS, { units: 'meters' });
 
-  if (state.poligonoArea) map.removeLayer(state.poligonoArea);
+  if (estado.poligonoArea) map.removeLayer(estado.poligonoArea);
 
-  state.poligonoArea = L.geoJSON(final, {
+  estado.poligonoArea = L.geoJSON(final, {
     style: { color: '#ff0000', weight: 4, fill: false }
   }).addTo(map);
 
-  state.areaFinalFeature = final;
+  estado.areaFinalFeature = final;
 
   const areaHa = document.getElementById('areaHa');
   if (areaHa) {

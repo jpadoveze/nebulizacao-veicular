@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { estado } from './estado.js';
 import { map } from './map.js';
 import { estiloNormal, estiloSelecionado } from './selecao.js';
 import { atualizarCalculos } from './calculos.js';
@@ -12,7 +12,7 @@ export function inicializarIO() {
 
   if (btnExportar) {
     btnExportar.onclick = () => {
-      if (!state.areaFinalFeature) {
+      if (!estado.areaFinalFeature) {
         alert('Conclua a demarcação antes de exportar.');
         return;
       }
@@ -21,16 +21,16 @@ export function inicializarIO() {
 
       features.push({
         type: 'Feature',
-        geometry: state.areaFinalFeature.geometry,
+        geometry: estado.areaFinalFeature.geometry,
         properties: {
           tipo: 'area_nebulizacao',
-          hectares: (turf.area(state.areaFinalFeature) / 10000).toFixed(2),
+          hectares: (turf.area(estado.areaFinalFeature) / 10000).toFixed(2),
           velocidade_kmh: +velocidade.value,
           vazao_ml_min: +vazao.value
         }
       });
 
-      state.quarteiroesSelecionados.forEach(layer => {
+      estado.quarteiroesSelecionados.forEach(layer => {
         const f = layer.toGeoJSON();
         f.properties = { ...f.properties, tipo: 'quarteirao_base' };
         features.push(f);
@@ -68,13 +68,13 @@ export function inicializarIO() {
         reader.onload = ev => {
           const data = JSON.parse(ev.target.result);
 
-          state.quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
-          state.quarteiroesSelecionados.clear();
+          estado.quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
+          estado.quarteiroesSelecionados.clear();
 
-          if (state.poligonoArea) {
-            map.removeLayer(state.poligonoArea);
-            state.poligonoArea = null;
-            state.areaFinalFeature = null;
+          if (estado.poligonoArea) {
+            map.removeLayer(estado.poligonoArea);
+            estado.poligonoArea = null;
+            estado.areaFinalFeature = null;
           }
 
           const idsImportados = new Set();
@@ -84,13 +84,13 @@ export function inicializarIO() {
             }
           });
 
-          state.camadaQuarteiroes.eachLayer(layer => {
+          estado.camadaQuarteiroes.eachLayer(layer => {
             const id = layer.feature?.properties?.id;
             if (!id) return;
 
             if (idsImportados.has(id)) {
               layer.setStyle(estiloSelecionado);
-              state.quarteiroesSelecionados.add(layer);
+              estado.quarteiroesSelecionados.add(layer);
             } else {
               layer.setStyle(estiloNormal);
             }
@@ -99,15 +99,15 @@ export function inicializarIO() {
           const areaFeature = data.features.find(f => f.properties?.tipo === 'area_nebulizacao');
 
           if (areaFeature) {
-            state.areaFinalFeature = areaFeature;
-            state.poligonoArea = L.geoJSON(areaFeature, {
+            estado.areaFinalFeature = areaFeature;
+            estado.poligonoArea = L.geoJSON(areaFeature, {
               style: { color: '#ff0000', weight: 4, fill: false }
             }).addTo(map);
 
-            map.fitBounds(state.poligonoArea.getBounds(), { padding: [20, 20], maxZoom: 18 });
+            map.fitBounds(estado.poligonoArea.getBounds(), { padding: [20, 20], maxZoom: 18 });
           }
 
-          state.modoSelecao = false;
+          estado.modoSelecao = false;
           if (btnNovo) btnNovo.textContent = 'Nova demarcação';
 
           atualizarCalculos();

@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { estado } from './estado.js';
 import { map } from './map.js';
 import { estiloNormal } from './selecao.js';
 import { criarPoligonoArea } from './area.js';
@@ -12,13 +12,13 @@ export function inicializarUI() {
 
   if (btnNovo) {
     btnNovo.onclick = () => {
-      if (!state.modoSelecao) {
-        state.modoSelecao = true;
+      if (!estado.modoSelecao) {
+        estado.modoSelecao = true;
         btnNovo.textContent = 'Concluir demarcação';
         return;
       }
 
-      state.modoSelecao = false;
+      estado.modoSelecao = false;
       btnNovo.textContent = 'Nova demarcação';
 
       setTimeout(() => {
@@ -30,13 +30,13 @@ export function inicializarUI() {
 
   if (btnLimpar) {
     btnLimpar.onclick = () => {
-      state.quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
-      state.quarteiroesSelecionados.clear();
+      estado.quarteiroesSelecionados.forEach(l => l.setStyle(estiloNormal));
+      estado.quarteiroesSelecionados.clear();
 
-      if (state.poligonoArea) {
-        map.removeLayer(state.poligonoArea);
-        state.poligonoArea = null;
-        state.areaFinalFeature = null;
+      if (estado.poligonoArea) {
+        map.removeLayer(estado.poligonoArea);
+        estado.poligonoArea = null;
+        estado.areaFinalFeature = null;
       }
 
       atualizarCalculos();

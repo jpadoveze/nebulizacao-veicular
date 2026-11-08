@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { estado } from './estado.js';
 import { map } from './map.js';
 import { atualizarCalculos } from './calculos.js';
 
@@ -20,7 +20,7 @@ export function inicializarQuarteiroes() {
   fetch('data/quarteiroes.geojson')
     .then(r => r.json())
     .then(data => {
-      state.camadaQuarteiroes = L.geoJSON(data, {
+      estado.camadaQuarteiroes = L.geoJSON(data, {
         style: estiloNormal,
         onEachFeature: (feature, layer) => {
           const centro = layer.getBounds().getCenter();
@@ -33,17 +33,17 @@ export function inicializarQuarteiroes() {
             interactive: false
           });
 
-          state.rotulos.push(rotulo);
-          if (map.getZoom() >= state.ZOOM_ROTULO) rotulo.addTo(map);
+          estado.rotulos.push(rotulo);
+          if (map.getZoom() >= estado.ZOOM_ROTULO) rotulo.addTo(map);
 
           layer.on('click', () => {
-            if (!state.modoSelecao) return;
+            if (!estado.modoSelecao) return;
 
-            if (state.quarteiroesSelecionados.has(layer)) {
-              state.quarteiroesSelecionados.delete(layer);
+            if (estado.quarteiroesSelecionados.has(layer)) {
+              estado.quarteiroesSelecionados.delete(layer);
               layer.setStyle(estiloNormal);
             } else {
-              state.quarteiroesSelecionados.add(layer);
+              estado.quarteiroesSelecionados.add(layer);
               layer.setStyle(estiloSelecionado);
             }
 

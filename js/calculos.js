@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { estado } from './estado.js';
 
 export function atualizarCalculos() {
   const areaHa = document.getElementById('areaHa');
@@ -10,7 +10,7 @@ export function atualizarCalculos() {
 
   let percurso = 0;
 
-  state.quarteiroesSelecionados.forEach(layer => {
+  estado.quarteiroesSelecionados.forEach(layer => {
     const latlngs = layer.getLatLngs().flat(2);
     for (let i = 0; i < latlngs.length; i++) {
       percurso += latlngs[i].distanceTo(latlngs[(i + 1) % latlngs.length]);
@@ -19,7 +19,7 @@ export function atualizarCalculos() {
 
   percurso *= 1.15; // Fator de correção de percurso
 
-  if (!state.areaFinalFeature) {
+  if (!estado.areaFinalFeature) {
     if (areaHa) areaHa.textContent = '—';
   }
 

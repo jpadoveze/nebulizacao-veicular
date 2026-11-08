@@ -1,4 +1,4 @@
-export const state = {
+export const estado = {
   modoSelecao: false,
   quarteiroesSelecionados: new Set(),
   poligonoArea: null,
